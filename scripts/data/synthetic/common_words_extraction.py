@@ -73,20 +73,45 @@ nouns = wonderwords.random_word._get_words_from_text_file("nounlist.txt")
 adjs = wonderwords.random_word._get_words_from_text_file("adjectivelist.txt")
 verbs = wonderwords.random_word._get_words_from_text_file("verblist.txt")
 words = nouns + adjs + verbs
-words = sorted(list(set(words)))
-random.Random(args.random_seed).shuffle(words)
-logger.info(f'loaded {len(words)} wonderwords')
 
 # Randleword english words
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "json/english_words.json") , "r") as f:
     randle_words = list(json.load(f).values())
-    logger.info(f'loaded {len(randle_words)} randle words')
+
+base_words = sorted(set(words) | set(randle_words))
+random.Random(args.random_seed).shuffle(base_words)
+logger.info(f'loaded {len(base_words)} base words')
+
+
+def sample_unique_words(num_words):
+    """Sample `num_words` unique word strings, compounding base words into
+    n-ary tuples (using the smallest n that fits) once the base vocabulary
+    is exhausted, so this never runs out regardless of context length."""
+    base_size = len(base_words)
+
+    arity = 1
+    capacity = base_size
+    while capacity < num_words:
+        arity += 1
+        capacity *= base_size
+
+    if arity == 1:
+        return random.sample(base_words, num_words)
+
+    # Encode each sampled index as a base-`base_size` number so that distinct
+    # indices always map to distinct (and thus unique) word tuples.
+    indices = random.sample(range(capacity), num_words)
+    sampled = []
+    for idx in indices:
+        parts = []
+        for _ in range(arity):
+            parts.append(base_words[idx % base_size])
+            idx //= base_size
+        sampled.append('-'.join(parts))
+    return sampled
 
 def get_example(num_words, common_repeats=30, uncommon_repeats=3, common_nums=10):
-    if num_words <= len(words):
-        word_list_full = random.sample(words, num_words)
-    else:
-        word_list_full = random.sample(randle_words, num_words)
+    word_list_full = sample_unique_words(num_words)
 
     common, uncommon = word_list_full[:common_nums], word_list_full[common_nums:]
     word_list = common * int(common_repeats) + uncommon * int(uncommon_repeats)
