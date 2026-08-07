@@ -1,0 +1,11 @@
+[project]
+name = "ruler"
+version = "0.1.0"
+description = "RULER: What's the Real Context Size of Your Long-Context Language Models?"
+requires-python = ">=3.10"
+dependencies = [
+    "gigatoken>=0.10.0",
+    "huggingface-hub>=1.8.0",
+    "tenacity>=9.1.4",
+    "transformers>=5.14.1",
+]

@@ -77,8 +77,13 @@ class HFTokenizer:
     """
     def __init__(self, model_path) -> None:
         from transformers import AutoTokenizer
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
-    
+        import gigatoken as gt
+        hf_tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+        # gigatoken's HF-compat wrapper is a drop-in for `.tokenize`/`.convert_tokens_to_string`
+        # (verified to match `hf_tokenizer` output exactly) but orders of magnitude faster, which
+        # matters once binary-search token counting is done over multi-million-token contexts.
+        self.tokenizer = gt.Tokenizer(hf_tokenizer).as_hf()
+
     def text_to_tokens(self, text: str) -> List[str]:
         tokens = self.tokenizer.tokenize(text)
         return tokens
