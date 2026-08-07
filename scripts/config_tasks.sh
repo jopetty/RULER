@@ -13,6 +13,12 @@
 # limitations under the License.
 
 NUM_SAMPLES=2048
+# Per-length overrides for NUM_SAMPLES, keyed by MAX_SEQ_LENGTH (falls back to
+# NUM_SAMPLES above for any length not listed here).
+declare -A NUM_SAMPLES_OVERRIDE=(
+    [1048576]=1000
+    [2097152]=500
+)
 REMOVE_NEWLINE_TAB=false
 STOP_WORDS=""
 

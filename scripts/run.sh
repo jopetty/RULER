@@ -87,13 +87,14 @@ fi
 # Start client (prepare data / call model API / obtain final metrics)
 total_time=0
 for MAX_SEQ_LENGTH in "${SEQ_LENGTHS[@]}"; do
-    
+
     RESULTS_DIR="${ROOT_DIR}/${MODEL_NAME}/${BENCHMARK}/${MAX_SEQ_LENGTH}"
     DATA_DIR="${RESULTS_DIR}/data"
     PRED_DIR="${RESULTS_DIR}/pred"
     mkdir -p ${DATA_DIR}
     mkdir -p ${PRED_DIR}
-    
+    CUR_NUM_SAMPLES=${NUM_SAMPLES_OVERRIDE[${MAX_SEQ_LENGTH}]:-${NUM_SAMPLES}}
+
     for TASK in "${TASKS[@]}"; do
         python data/prepare.py \
             --save_dir ${DATA_DIR} \
@@ -103,7 +104,7 @@ for MAX_SEQ_LENGTH in "${SEQ_LENGTHS[@]}"; do
             --tokenizer_type ${TOKENIZER_TYPE} \
             --max_seq_length ${MAX_SEQ_LENGTH} \
             --model_template_type ${MODEL_TEMPLATE_TYPE} \
-            --num_samples ${NUM_SAMPLES} \
+            --num_samples ${CUR_NUM_SAMPLES} \
             ${REMOVE_NEWLINE_TAB}
         
         start_time=$(date +%s)
