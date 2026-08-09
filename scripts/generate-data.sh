@@ -21,9 +21,8 @@
 # Requires `uv` (https://docs.astral.sh/uv/); dependencies are resolved
 # automatically into the project's `.venv` on first run.
 #
-# One-time prerequisite (skip if already done): fetch the essay/QA source
-# corpora used by the niah/qa tasks, from scripts/data/synthetic/json/:
-#   uv run python download_paulgraham_essay.py && bash download_qa_dataset.sh
+# The essay/QA source corpora used by the niah/qa tasks are fetched
+# automatically below on first run (and skipped on later runs once present).
 #
 # Usage: bash generate-data.sh [output_dir] [benchmark]
 # Example: bash generate-data.sh benchmark_root/data synthetic
@@ -35,10 +34,17 @@ BENCHMARK=${2:-synthetic}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "${SCRIPT_DIR}")"
+JSON_DIR="${SCRIPT_DIR}/data/synthetic/json"
 
 cd "${SCRIPT_DIR}"
 source config_models.sh   # defines SEQ_LENGTHS
 source config_tasks.sh    # defines NUM_SAMPLES, NUM_SAMPLES_OVERRIDE, and per-benchmark task arrays
+
+if [ ! -f "${JSON_DIR}/PaulGrahamEssays.json" ] || [ ! -f "${JSON_DIR}/squad.json" ] || [ ! -f "${JSON_DIR}/hotpotqa.json" ]; then
+    echo "=== fetching essay/QA source corpora (one-time) ==="
+    (cd "${JSON_DIR}" && uv run --project "${PROJECT_ROOT}" python download_paulgraham_essay.py)
+    (cd "${JSON_DIR}" && bash download_qa_dataset.sh)
+fi
 
 declare -n TASKS=$BENCHMARK
 if [ -z "${TASKS}" ]; then
