@@ -30,6 +30,7 @@ import re
 import json
 import uuid
 import argparse
+import functools
 import numpy as np
 from pathlib import Path
 from tqdm import tqdm
@@ -93,6 +94,26 @@ else:
     raise NotImplementedError(f'{args.type_haystack} is not implemented.')
 
 
+@functools.lru_cache(maxsize=4)
+def _get_essay_document_sents(num_haystack):
+    """Sentence-split the (possibly tiled) essay haystack of a given size.
+
+    `num_haystack` fully determines this output given the fixed `haystack`
+    corpus, and it's called with the same value for every one of num_samples
+    once binary search settles on an optimal size, so caching turns an
+    O(num_samples) re-tokenization of a multi-million-character string into
+    effectively O(1). Purely a compute-avoidance cache: it never touches
+    `random`, so generated samples are bit-for-bit identical either way.
+    """
+    if num_haystack <= len(haystack):
+        text = " ".join(haystack[:num_haystack])
+    else:
+        # Repeat haystack as many times as needed and slice to num_haystack
+        repeats = (num_haystack + len(haystack) - 1) // len(haystack)  # Ceiling division
+        text = " ".join((haystack * repeats)[:num_haystack])
+    return sent_tokenize(text.strip())
+
+
 # Words
 nouns = wonderwords.random_word._get_words_from_text_file("nounlist.txt")
 adjs = wonderwords.random_word._get_words_from_text_file("adjectivelist.txt")
@@ -145,14 +166,7 @@ def generate_input_output(num_haystack):
 
     # Context
     if args.type_haystack == 'essay':
-        text = " ".join(haystack[:num_haystack])
-        if num_haystack <= len(haystack):
-            text = " ".join(haystack[:num_haystack])
-        else:
-            # Repeat haystack as many times as needed and slice to num_haystack
-            repeats = (num_haystack + len(haystack) - 1) // len(haystack)  # Ceiling division
-            text = " ".join((haystack * repeats)[:num_haystack])
-        document_sents = sent_tokenize(text.strip())
+        document_sents = _get_essay_document_sents(num_haystack)
         insertion_positions = [0] + \
                               sorted([int(len(document_sents) * (depth / 100)) for depth in random.sample(DEPTHS, len(needles))]) + \
                               [len(document_sents)]

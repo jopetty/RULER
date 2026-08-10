@@ -4,3 +4,5 @@ __pycache__/
 .vscode/
 *.out
 .venv/
+*.generate.log
+benchmark_root/
