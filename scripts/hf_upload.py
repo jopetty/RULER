@@ -17,7 +17,7 @@ Upload generated RULER benchmark data to a Hugging Face dataset repo.
 
 python hf_upload.py \
     --local-dir benchmark_root/data \
-    --repo-id jacksonp-ai2/ruler \
+    --repo-id allenai/ruler-plus \
     --path-in-repo data
 """
 import argparse
@@ -26,7 +26,7 @@ from huggingface_hub import HfApi
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--local-dir", required=True, help="local folder containing the generated jsonl data")
-parser.add_argument("--repo-id", default="jacksonp-ai2/ruler", help="destination HF dataset repo, e.g. jacksonp-ai2/ruler")
+parser.add_argument("--repo-id", default="allenai/ruler-plus", help="destination HF dataset repo, e.g. allenai/ruler-plus")
 parser.add_argument("--path-in-repo", default="data", help="destination path within the repo")
 parser.add_argument("--private", action="store_true", help="create the repo as private if it doesn't already exist")
 parser.add_argument("--commit-message", default="Upload RULER benchmark data", help="commit message for the upload")

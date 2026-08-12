@@ -19,22 +19,20 @@
 #
 # Auth: run `uv run hf auth login` once, or export HF_TOKEN.
 #
-# Usage: bash hf-upload.sh <local_dir> [repo_id] [path_in_repo]
-# Example: bash hf-upload.sh benchmark_root/data jacksonp-ai2/ruler data
+# Defaults match generate-data.sh's own defaults, so with no arguments this
+# uploads exactly what a default `bash generate-data.sh` run produced, to
+# allenai/ruler-plus. Positional overrides are still accepted if ever needed.
+#
+# Usage: bash hf-upload.sh [local_dir] [repo_id] [path_in_repo]
 
 set -euo pipefail
 
-if [ $# -lt 1 ]; then
-    echo "Usage: $0 <local_dir> [repo_id] [path_in_repo]"
-    exit 1
-fi
-
-LOCAL_DIR=$1
-REPO_ID=${2:-jacksonp-ai2/ruler}
-PATH_IN_REPO=${3:-data}
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "${SCRIPT_DIR}")"
+
+LOCAL_DIR=${1:-"${SCRIPT_DIR}/benchmark_root/data"}
+REPO_ID=${2:-allenai/ruler-plus}
+PATH_IN_REPO=${3:-data}
 
 cd "${PROJECT_ROOT}"
 uv run python scripts/hf_upload.py \
